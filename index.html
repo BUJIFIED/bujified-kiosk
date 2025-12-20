@@ -5,32 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bujified Kiosk (Portrait)</title>
     <style>
-        /* 1. RESET & LOCK SCROLLING */
+        /* --- 1. KIOSK SYSTEM RESET --- */
         body, html { 
             margin: 0; 
             padding: 0; 
             width: 100vw; 
             height: 100vh; 
-            overflow: hidden; /* Stops glitchy scrollbars */
+            overflow: hidden; 
             background: #000; 
-            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            overscroll-behavior: none; 
         }
 
-        /* 2. PORTRAIT OPTIMIZED SCREENSAVER */
+        /* --- 2. SCREENSAVER --- */
         #screensaver {
             position: fixed;
             top: 0; left: 0; 
             width: 100vw; 
             height: 100vh;
-            background: #000; 
+            
+            /* --- BACKGROUND IMAGE (Single Wallpaper) --- */
+            background: url('https://images.editor.website/uploads/b/cc358c741d9fb1c88f25819dd074409001da11fd2671e771a10c9663e3c8a15f/MAIN%20%20BUJIFIED%20LOGO%20%2818%29_1766197830.png?width=400&optimize=medium') no-repeat center center; 
+            
+            /* 'cover' ensures the image fills the whole screen without white space */
+            background-size: cover; 
+            /* ------------------------------------------- */
+
             z-index: 9999;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.5s ease-in-out, visibility 0.5s;
+            transition: opacity 0.6s ease-in-out, visibility 0.6s;
             cursor: pointer;
-            touch-action: none; /* Prevents zooming taps */
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         
         #screensaver.hidden {
@@ -39,29 +49,33 @@
             pointer-events: none;
         }
 
-        /* LOGO - Adjusted for Vertical Screen */
+        /* Logo */
         #screensaver img {
-            width: 80%; /* Wider on portrait so it's readable */
-            max-width: 600px; 
+            width: 85%;
+            max-width: 650px; 
             height: auto;
             object-fit: contain;
+            pointer-events: none; 
             animation: pulse 4s infinite ease-in-out;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
         }
 
-        /* TEXT - Adjusted for Vertical Screen */
+        /* Text */
         .tap-text {
             color: #fff;
-            margin-top: 60px;
-            font-size: 3vh; /* Size based on screen height */
+            margin-top: 5vh; 
+            font-size: 2.5vh; 
             text-align: center;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             text-transform: uppercase;
-            font-weight: 800;
-            animation: fadeText 2s infinite;
-            padding: 0 20px;
+            font-weight: 700;
+            line-height: 1.4;
+            animation: fadeText 3s infinite;
+            opacity: 0.95;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
 
-        /* 3. THE APP FRAME (Locked to Viewport) */
+        /* --- 3. APP FRAME --- */
         #app-frame {
             width: 100vw;
             height: 100vh;
@@ -70,95 +84,105 @@
             background: #fff;
         }
 
-        /* 4. INVISIBLE FULLSCREEN BUTTON (Bottom Right) */
+        /* --- 4. ADMIN CONTROLS --- */
         #fs-btn {
             position: fixed;
             bottom: 0; right: 0;
-            width: 80px; height: 80px; /* Bigger touch target */
+            width: 100px; height: 100px;
             background: transparent;
             z-index: 10000;
         }
 
-        /* ANIMATIONS */
+        /* --- 5. ANIMATIONS --- */
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.8; }
+            0% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.9; }
         }
         @keyframes fadeText {
-            0%, 100% { opacity: 0.4; }
+            0%, 100% { opacity: 0.6; }
             50% { opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-    <div id="screensaver" onclick="wakeUp()">
+    <div id="screensaver">
         <img src="https://cc358c741d9fb1c88f25.cdn6.editmysite.com/uploads/b/cc358c741d9fb1c88f25819dd074409001da11fd2671e771a10c9663e3c8a15f/6.11.2024_6668aa5726feb0.29574152.png?width=2400&optimize=medium" 
-             alt="Bujified Hawaii">
+             alt="Bujified Hawaii"
+             draggable="false">
         
         <div class="tap-text">
             Tap Screen<br>to Start Design
         </div>
     </div>
 
-    <iframe id="app-frame" src="https://customthings.com/v2/in-store/shop/750669022704645" allow="camera; microphone"></iframe>
+    <iframe id="app-frame" 
+            src="https://customthings.com/v2/in-store/shop/750669022704645" 
+            allow="camera; microphone; payment; autoplay"
+            sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-modals">
+    </iframe>
 
-    <div id="fs-btn" onclick="toggleFullScreen()"></div>
+    <div id="fs-btn"></div>
 
     <script>
-        // --- SETTINGS ---
-        const idleLimitMinutes = 3; 
-        // ----------------
+        // --- CONFIGURATION ---
+        const IDLE_LIMIT_MINUTES = 3; 
+        const IDLE_LIMIT_SECONDS = IDLE_LIMIT_MINUTES * 60;
+        // ---------------------
 
-        let idleTime = 0;
+        let idleTimer = 0;
         const screensaver = document.getElementById('screensaver');
         const appFrame = document.getElementById('app-frame');
-        const idleLimitSeconds = idleLimitMinutes * 60;
+        const fsBtn = document.getElementById('fs-btn');
 
         function wakeUp() {
-            screensaver.classList.add('hidden');
-            idleTime = 0;
+            if (!screensaver.classList.contains('hidden')) {
+                screensaver.classList.add('hidden');
+                resetTimer();
+            }
         }
 
         function goSleep() {
             if (screensaver.classList.contains('hidden')) {
                 screensaver.classList.remove('hidden');
-                // Small delay before reloading to prevent visual glitches
                 setTimeout(() => {
-                    appFrame.src = appFrame.src;
-                }, 500); 
+                    console.log("Session reset.");
+                    appFrame.src = appFrame.src; 
+                }, 700); 
             }
         }
 
         function timerIncrement() {
-            idleTime++;
-            if (idleTime >= idleLimitSeconds) {
+            idleTimer++;
+            if (idleTimer >= IDLE_LIMIT_SECONDS) {
                 goSleep();
-                idleTime = 0;
+                idleTimer = 0;
             }
         }
         
         setInterval(timerIncrement, 1000); 
 
-        // Reset timer on any activity
-        function resetTimer() { idleTime = 0; }
-        window.onload = resetTimer;
-        document.onclick = resetTimer;
-        document.onmousemove = resetTimer;
-        document.ontouchstart = resetTimer;
-        document.onkeypress = resetTimer;
-
-        // Toggle Fullscreen
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
+        function resetTimer() { 
+            idleTimer = 0; 
         }
+
+        window.addEventListener('load', resetTimer);
+        document.addEventListener('mousemove', resetTimer);
+        document.addEventListener('touchstart', resetTimer);
+        document.addEventListener('click', resetTimer);
+        document.addEventListener('keypress', resetTimer);
+        window.addEventListener('blur', resetTimer);
+
+        screensaver.addEventListener('click', wakeUp);
+
+        fsBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        });
     </script>
 </body>
 </html>
