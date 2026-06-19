@@ -6,65 +6,57 @@
     <title>Bujified Kiosk (Portrait)</title>
     <style>
         /* --- 1. KIOSK SYSTEM RESET --- */
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            width: 100vw; 
-            height: 100vh; 
-            overflow: hidden; 
-            background: #000; 
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: #000;
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            overscroll-behavior: none; 
+            overscroll-behavior: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* --- 2. SCREENSAVER --- */
         #screensaver {
             position: fixed;
-            top: 0; left: 0; 
-            width: 100vw; 
-            height: 100vh;
-            
-            /* --- BACKGROUND IMAGE (Single Wallpaper) --- */
-            background: url('https://images.editor.website/uploads/b/cc358c741d9fb1c88f25819dd074409001da11fd2671e771a10c9663e3c8a15f/MAIN%20%20BUJIFIED%20LOGO%20%2818%29_1766197830.png?width=400&optimize=medium') no-repeat center center; 
-            
-            /* 'cover' ensures the image fills the whole screen without white space */
-            background-size: cover; 
-            /* ------------------------------------------- */
-
+            inset: 0;
+            background: #000 url('https://images.editor.website/uploads/b/cc358c741d9fb1c88f25819dd074409001da11fd2671e771a10c9663e3c8a15f/MAIN%20%20BUJIFIED%20LOGO%20%2818%29_1766197830.png?width=1600&optimize=medium') no-repeat center center;
+            background-size: cover;
             z-index: 9999;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            box-sizing: border-box;
             transition: opacity 0.6s ease-in-out, visibility 0.6s;
             cursor: pointer;
             touch-action: none;
             -webkit-user-select: none;
             user-select: none;
         }
-        
+
         #screensaver.hidden {
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
         }
 
-        /* Logo */
         #screensaver img {
             width: 85%;
-            max-width: 650px; 
+            max-width: 650px;
             height: auto;
             object-fit: contain;
-            pointer-events: none; 
+            pointer-events: none;
             animation: pulse 4s infinite ease-in-out;
             filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
         }
 
-        /* Text */
         .tap-text {
             color: #fff;
-            margin-top: 5vh; 
-            font-size: 2.5vh; 
+            margin-top: 5vh;
+            font-size: 2.5vh;
             text-align: center;
             letter-spacing: 3px;
             text-transform: uppercase;
@@ -84,105 +76,245 @@
             background: #fff;
         }
 
-        /* --- 4. ADMIN CONTROLS --- */
+        /* --- 4. IDLE WARNING MODAL --- */
+        #idle-warning {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.88);
+            z-index: 9000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            text-align: center;
+            padding: 6vh 6vw;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        #idle-warning.show { display: flex; }
+
+        #idle-warning h2 {
+            font-size: 5vh;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin: 0 0 2vh 0;
+        }
+        #idle-warning p {
+            font-size: 2.6vh;
+            line-height: 1.4;
+            margin: 0 0 1vh 0;
+            opacity: 0.9;
+        }
+        #idle-countdown {
+            font-size: 14vh;
+            font-weight: 900;
+            margin: 3vh 0;
+            color: #ffcc00;
+            text-shadow: 0 4px 24px rgba(255, 204, 0, 0.45);
+            line-height: 1;
+        }
+        #stay-btn {
+            margin-top: 4vh;
+            padding: 3vh 8vw;
+            font-size: 3vh;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: #ffcc00;
+            color: #000;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 6px 24px rgba(255, 204, 0, 0.45);
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        #stay-btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 3px 12px rgba(255, 204, 0, 0.35);
+        }
+
+        /* --- 5. ADMIN HOTSPOT --- */
         #fs-btn {
             position: fixed;
             bottom: 0; right: 0;
-            width: 100px; height: 100px;
+            width: 80px; height: 80px;
             background: transparent;
             z-index: 10000;
         }
 
-        /* --- 5. ANIMATIONS --- */
+        /* --- 6. ANIMATIONS --- */
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.9; }
-            50% { transform: scale(1.03); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.9; }
+            0%   { transform: scale(1);    opacity: 0.9; }
+            50%  { transform: scale(1.03); opacity: 1;   }
+            100% { transform: scale(1);    opacity: 0.9; }
         }
         @keyframes fadeText {
             0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
+            50%      { opacity: 1;   }
         }
     </style>
 </head>
 <body>
 
     <div id="screensaver">
-        <img src="https://cc358c741d9fb1c88f25.cdn6.editmysite.com/uploads/b/cc358c741d9fb1c88f25819dd074409001da11fd2671e771a10c9663e3c8a15f/6.11.2024_6668aa5726feb0.29574152.png?width=2400&optimize=medium" 
+        <img src="https://cc358c741d9fb1c88f25.cdn6.editmysite.com/uploads/b/cc358c741d9fb1c88f25819dd074409001da11fd2671e771a10c9663e3c8a15f/6.11.2024_6668aa5726feb0.29574152.png?width=2400&optimize=medium"
              alt="Bujified Hawaii"
              draggable="false">
-        
+
         <div class="tap-text">
             Tap Screen<br>to Start Design
         </div>
     </div>
 
-    <iframe id="app-frame" 
-            src="https://customthings.com/v2/in-store/shop/750669022704645" 
+    <iframe id="app-frame"
+            src="https://customthings.com/v2/in-store/shop/750669022704645"
             allow="camera; microphone; payment; autoplay"
-            sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-modals">
-    </iframe>
+            sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-modals"
+            referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+    <div id="idle-warning">
+        <h2>Still Designing?</h2>
+        <p>Your session will reset in</p>
+        <div id="idle-countdown">30</div>
+        <p>seconds</p>
+        <button id="stay-btn" type="button">I'm Still Here</button>
+    </div>
 
     <div id="fs-btn"></div>
 
     <script>
+    (function () {
+        'use strict';
+
         // --- CONFIGURATION ---
-        const IDLE_LIMIT_MINUTES = 3; 
-        const IDLE_LIMIT_SECONDS = IDLE_LIMIT_MINUTES * 60;
+        const IDLE_LIMIT_MINUTES = 10;         // total idle time before reset
+        const WARNING_SECONDS    = 30;         // show warning this long before reset
+        const IDLE_LIMIT_MS      = IDLE_LIMIT_MINUTES * 60 * 1000;
+        const WARNING_MS         = WARNING_SECONDS * 1000;
+        const WARNING_TRIGGER_MS = IDLE_LIMIT_MS - WARNING_MS;
+        const CHECK_INTERVAL_MS  = 1000;       // 1s so countdown stays smooth
+        const IFRAME_URL         = 'https://customthings.com/v2/in-store/shop/750669022704645';
         // ---------------------
 
-        let idleTimer = 0;
-        const screensaver = document.getElementById('screensaver');
-        const appFrame = document.getElementById('app-frame');
-        const fsBtn = document.getElementById('fs-btn');
+        const screensaver   = document.getElementById('screensaver');
+        const appFrame      = document.getElementById('app-frame');
+        const fsBtn         = document.getElementById('fs-btn');
+        const idleWarning   = document.getElementById('idle-warning');
+        const idleCountdown = document.getElementById('idle-countdown');
+        const stayBtn       = document.getElementById('stay-btn');
+
+        let lastActivity = Date.now();
+        let isSleeping   = true;   // start on screensaver
+        let warningShown = false;
+
+        function markActivity() {
+            lastActivity = Date.now();
+        }
+
+        function showWarning() {
+            if (warningShown || isSleeping) return;
+            warningShown = true;
+            idleCountdown.textContent = WARNING_SECONDS;
+            idleWarning.classList.add('show');
+        }
+
+        function hideWarning() {
+            if (!warningShown) return;
+            warningShown = false;
+            idleWarning.classList.remove('show');
+        }
 
         function wakeUp() {
-            if (!screensaver.classList.contains('hidden')) {
-                screensaver.classList.add('hidden');
-                resetTimer();
-            }
+            if (!isSleeping) return;
+            isSleeping = false;
+            screensaver.classList.add('hidden');
+            hideWarning();
+            markActivity();
         }
 
         function goSleep() {
-            if (screensaver.classList.contains('hidden')) {
-                screensaver.classList.remove('hidden');
-                setTimeout(() => {
-                    console.log("Session reset.");
-                    appFrame.src = appFrame.src; 
-                }, 700); 
+            if (isSleeping) return;
+            isSleeping = true;
+            hideWarning();
+            screensaver.classList.remove('hidden');
+            // Hard reload the iframe to clear the previous customer's session.
+            try {
+                appFrame.src = 'about:blank';
+                setTimeout(() => { appFrame.src = IFRAME_URL; }, 400);
+            } catch (e) {
+                appFrame.contentWindow.location.replace(IFRAME_URL);
             }
         }
 
-        function timerIncrement() {
-            idleTimer++;
-            if (idleTimer >= IDLE_LIMIT_SECONDS) {
+        // --- IDLE CHECK ---
+        setInterval(() => {
+            if (isSleeping) return;
+            const idleMs = Date.now() - lastActivity;
+
+            if (idleMs >= IDLE_LIMIT_MS) {
                 goSleep();
-                idleTimer = 0;
+                return;
             }
+
+            if (idleMs >= WARNING_TRIGGER_MS) {
+                if (!warningShown) showWarning();
+                const secondsLeft = Math.max(0, Math.ceil((IDLE_LIMIT_MS - idleMs) / 1000));
+                idleCountdown.textContent = secondsLeft;
+            } else if (warningShown) {
+                hideWarning();
+            }
+        }, CHECK_INTERVAL_MS);
+
+        // --- "I'M STILL HERE" BUTTON ---
+        function dismissWarning(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            markActivity();
+            hideWarning();
         }
-        
-        setInterval(timerIncrement, 1000); 
+        stayBtn.addEventListener('click', dismissWarning);
+        stayBtn.addEventListener('touchstart', dismissWarning, { passive: false });
 
-        function resetTimer() { 
-            idleTimer = 0; 
-        }
+        // --- ACTIVITY DETECTION ---
+        ['mousemove', 'mousedown', 'touchstart', 'touchmove', 'click', 'keydown', 'scroll']
+            .forEach(ev => document.addEventListener(ev, markActivity, { passive: true, capture: true }));
 
-        window.addEventListener('load', resetTimer);
-        document.addEventListener('mousemove', resetTimer);
-        document.addEventListener('touchstart', resetTimer);
-        document.addEventListener('click', resetTimer);
-        document.addEventListener('keypress', resetTimer);
-        window.addEventListener('blur', resetTimer);
+        // When the iframe steals focus, the parent stops getting touch/mouse events.
+        // Treat focus shifts as activity so the design session isn't killed mid-use.
+        window.addEventListener('blur', markActivity);
+        window.addEventListener('focus', markActivity);
 
+        // Heartbeat: while the iframe has focus, ping activity every 10s.
+        setInterval(() => {
+            if (!isSleeping && document.activeElement === appFrame) {
+                markActivity();
+            }
+        }, 10 * 1000);
+
+        // Listen for postMessage pings from inside the iframe (if any).
+        window.addEventListener('message', () => markActivity());
+
+        // --- SCREENSAVER TAP ---
         screensaver.addEventListener('click', wakeUp);
+        screensaver.addEventListener('touchstart', wakeUp, { passive: true });
 
+        // --- ADMIN: hidden fullscreen toggle (bottom-right corner) ---
         fsBtn.addEventListener('click', () => {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.log(err));
-            } else {
-                if (document.exitFullscreen) document.exitFullscreen();
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
             }
         });
+
+        // --- SAFETY: retry iframe load on error ---
+        appFrame.addEventListener('error', () => {
+            setTimeout(() => { appFrame.src = IFRAME_URL; }, 5000);
+        });
+    })();
     </script>
 </body>
 </html>
