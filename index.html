@@ -191,12 +191,12 @@
         'use strict';
 
         // --- CONFIGURATION ---
-        const IDLE_LIMIT_MINUTES = 10;         // total idle time before reset
-        const WARNING_SECONDS    = 30;         // show warning this long before reset
-        const IDLE_LIMIT_MS      = IDLE_LIMIT_MINUTES * 60 * 1000;
-        const WARNING_MS         = WARNING_SECONDS * 1000;
+        const IDLE_LIMIT_MINUTES = 30;         // total idle time before reset
+        const WARNING_SECONDS    = 120;         // show warning this long before reset
+        const IDLE_LIMIT_MS      = IDLE_LIMIT_MINUTES * 120 * 3000;
+        const WARNING_MS         = WARNING_SECONDS * 3000;
         const WARNING_TRIGGER_MS = IDLE_LIMIT_MS - WARNING_MS;
-        const CHECK_INTERVAL_MS  = 1000;       // 1s so countdown stays smooth
+        const CHECK_INTERVAL_MS  = 3000;       // 120s so countdown stays smooth
         const IFRAME_URL         = 'https://customthings.com/v2/in-store/shop/750669022704645';
         // ---------------------
 
